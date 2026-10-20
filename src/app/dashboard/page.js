@@ -55,7 +55,6 @@ export default function DashboardPage() {
       } else if (data.type === "chat") {
         setMessages((prev) => [...prev, { type: "chat", text: data.message, sender: data.sender }]);
         
-        // Show Notification
         if (data.sender !== username) {
           setNotification(`New message from ${data.sender}`);
           setTimeout(() => setNotification(""), 3000);
@@ -169,8 +168,13 @@ export default function DashboardPage() {
                 </Link>
               </li>
               <li>
-                <Link href="#" className="block px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-lg cursor-pointer">
-                  👥 Team
+                <Link href="/resume" className="block px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-lg cursor-pointer">
+                  🤖 Resume AI
+                </Link>
+              </li>
+              <li>
+                <Link href="/rank" className="block px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-lg cursor-pointer">
+                  🏆 Leaderboard
                 </Link>
               </li>
             </ul>
