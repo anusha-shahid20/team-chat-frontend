@@ -25,7 +25,7 @@ export default function ResumePage() {
     const token = localStorage.getItem("access_token");
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/resumes/api/upload/", {
+      const res = await fetch("https://anushakhalil.pythonanywhere.com/resumes/api/upload/", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,

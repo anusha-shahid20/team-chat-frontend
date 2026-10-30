@@ -16,7 +16,7 @@ export default function JobsPage() {
     const token = localStorage.getItem("access_token");
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/resumes/api/jobs/", {
+      const res = await fetch("https://anushakhalil.pythonanywhere.com/resumes/api/jobs/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

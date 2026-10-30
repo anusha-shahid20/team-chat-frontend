@@ -21,7 +21,7 @@ function RankContent() {
     const fetchJobs = async () => {
       const token = localStorage.getItem("access_token");
       try {
-        const res = await fetch("http://127.0.0.1:8000/resumes/api/jobs/", {
+        const res = await fetch("https://anushakhalil.pythonanywhere.com/resumes/api/jobs/", {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (res.ok) {
@@ -63,7 +63,7 @@ function RankContent() {
     const token = localStorage.getItem("access_token");
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/resumes/api/rank/", {
+      const res = await fetch("https://anushakhalil.pythonanywhere.com/resumes/api/rank/", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,

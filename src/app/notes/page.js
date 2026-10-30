@@ -20,7 +20,7 @@ export default function NotesPage() {
     }
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/tasks/api/notes/", {
+      const res = await fetch("https://anushakhalil.pythonanywhere.com/tasks/api/notes/", {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error("Failed to fetch notes");

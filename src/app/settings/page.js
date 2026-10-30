@@ -19,7 +19,7 @@ export default function SettingsPage() {
     const token = localStorage.getItem("access_token");
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/tasks/api/change-password/", {
+      const res = await fetch("https://anushakhalil.pythonanywhere.com/tasks/api/change-password/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

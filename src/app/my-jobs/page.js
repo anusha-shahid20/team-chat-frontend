@@ -11,7 +11,7 @@ export default function MyJobsPage() {
     const fetchJobs = async () => {
       const token = localStorage.getItem("access_token");
       try {
-        const res = await fetch("http://127.0.0.1:8000/resumes/api/jobs/", {
+        const res = await fetch("https://anushakhalil.pythonanywhere.com/resumes/api/jobs/", {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (res.ok) {

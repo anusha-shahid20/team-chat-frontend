@@ -12,7 +12,7 @@ export default function ProjectsPage() {
     async function fetchProjects() {
       try {
         const token = localStorage.getItem("access_token");
-        const API_URL = process.env.NEXT_PUBLIC_API_URL;
+        const API_URL = "https://anushakhalil.pythonanywhere.com";
         const response = await fetch(`${API_URL}/tasks/api/projects/`, {
           headers: {
             Authorization: `Bearer ${token}`,
