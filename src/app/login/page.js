@@ -18,7 +18,7 @@ export default function LoginPage() {
 
     try {
       const API_URL = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${API_URL}/api/token/`, {
+      const response = await fetch("https://anushakhalil.pythonanywhere.com/api/token/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
