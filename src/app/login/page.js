@@ -29,9 +29,12 @@ export default function LoginPage() {
       }
 
       const data = await response.json();
+      
+      // Save tokens and user info in localStorage
       localStorage.setItem("access_token", data.access);
       localStorage.setItem("refresh_token", data.refresh);
       localStorage.setItem("username", username);
+      localStorage.setItem("role", data.role); // <-- Save the role
 
       router.push("/dashboard");
     } catch (err) {

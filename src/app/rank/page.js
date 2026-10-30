@@ -1,14 +1,45 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
-export default function RankPage() {
+// We wrap the component in Suspense because useSearchParams requires it in Next.js
+function RankContent() {
   const [files, setFiles] = useState([]);
-  const [jd, setJd] = useState("");
+  const [jobs, setJobs] = useState([]);
+  const [selectedJobId, setSelectedJobId] = useState("");
   const [loading, setLoading] = useState(false);
   const [rankings, setRankings] = useState([]);
   const [error, setError] = useState(null);
+  
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  // Fetch saved jobs and auto-select the job if passed in URL
+  useEffect(() => {
+    const fetchJobs = async () => {
+      const token = localStorage.getItem("access_token");
+      try {
+        const res = await fetch("http://127.0.0.1:8000/resumes/api/jobs/", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setJobs(data);
+
+          // Check if URL has ?job_id=... and auto-select it
+          const urlJobId = searchParams.get("job_id");
+          if (urlJobId && data.some(job => job.id === parseInt(urlJobId))) {
+            setSelectedJobId(urlJobId);
+          }
+        }
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    fetchJobs();
+  }, [searchParams]);
 
   const handleRank = async (e) => {
     e.preventDefault();
@@ -19,15 +50,14 @@ export default function RankPage() {
     setRankings([]);
 
     const formData = new FormData();
-    
-    // Append all selected files to the form data
     for (let i = 0; i < files.length; i++) {
       formData.append("files", files[i]);
     }
     
-    // Append Job Description if provided
-    if (jd) {
-      formData.append("job_description", jd);
+    // Get the description of the selected job
+    const selectedJob = jobs.find(j => j.id === parseInt(selectedJobId));
+    if (selectedJob) {
+      formData.append("job_description", selectedJob.description);
     }
 
     const token = localStorage.getItem("access_token");
@@ -41,9 +71,7 @@ export default function RankPage() {
       
       const data = await res.json();
       
-      if (!res.ok) {
-        throw new Error(data.error || "Error ranking files");
-      }
+      if (!res.ok) throw new Error(data.error || "Error ranking files");
       
       setRankings(data.ranking);
     } catch (err) {
@@ -58,20 +86,45 @@ export default function RankPage() {
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-gray-900">Resume Leaderboard</h1>
-          <Link href="/dashboard" className="text-blue-500 hover:underline">
-            ← Back to Chat
-          </Link>
+          <div className="flex gap-4">
+            <Link href="/my-jobs" className="text-blue-500 hover:underline">
+              ← Back to My Jobs
+            </Link>
+            <Link href="/dashboard" className="text-gray-500 hover:underline">
+              Dashboard
+            </Link>
+          </div>
         </div>
 
         <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 mb-8">
           <form onSubmit={handleRank} className="space-y-4">
+            
+            {/* Job Dropdown */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Upload Multiple Resumes (Hold Ctrl to select multiple files)
+                Select a Job (Optional)
+              </label>
+              <select
+                value={selectedJobId}
+                onChange={(e) => setSelectedJobId(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+              >
+                <option value="">-- None (Just Score Resumes) --</option>
+                {jobs.map((job) => (
+                  <option key={job.id} value={job.id}>
+                    {job.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Upload Multiple Resumes (Hold Ctrl to select multiple)
               </label>
               <input
                 type="file"
-                multiple // This allows multiple file selection
+                multiple
                 accept=".pdf,.docx"
                 onChange={(e) => setFiles(e.target.files)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
@@ -83,24 +136,12 @@ export default function RankPage() {
               )}
             </div>
             
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Job Description (Optional)
-              </label>
-              <textarea
-                value={jd}
-                onChange={(e) => setJd(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg h-20 focus:ring-2 focus:ring-blue-500 outline-none"
-                placeholder="Paste job requirements here to match against..."
-              />
-            </div>
-            
             <button
               type="submit"
               disabled={loading}
               className="w-full bg-purple-600 text-white py-3 rounded-lg font-bold hover:bg-purple-700 disabled:opacity-50 transition"
             >
-              {loading ? "Processing & Analyzing..." : "Rank Resumes"}
+              {loading ? "Processing..." : "Rank Resumes"}
             </button>
           </form>
 
@@ -137,5 +178,14 @@ export default function RankPage() {
         )}
       </div>
     </main>
+  );
+}
+
+// Main page component wrapped in Suspense
+export default function RankPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center">Loading...</div>}>
+      <RankContent />
+    </Suspense>
   );
 }

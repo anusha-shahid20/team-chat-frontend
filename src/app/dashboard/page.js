@@ -7,6 +7,7 @@ import Link from "next/link";
 export default function DashboardPage() {
   const [showSidebar, setShowSidebar] = useState(true);
   const [username, setUsername] = useState("");
+  const [role, setRole] = useState("employee");
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [socketStatus, setSocketStatus] = useState("Connecting...");
@@ -25,6 +26,7 @@ export default function DashboardPage() {
   useEffect(() => {
     const token = localStorage.getItem("access_token");
     const user = localStorage.getItem("username");
+    const userRole = localStorage.getItem("role");
     
     if (!token) {
       router.push("/login");
@@ -32,6 +34,7 @@ export default function DashboardPage() {
     }
     
     setUsername(user || "User");
+    setRole(userRole || "employee");
 
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       return; 
@@ -79,6 +82,7 @@ export default function DashboardPage() {
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
     localStorage.removeItem("username");
+    localStorage.removeItem("role");
     if (wsRef.current) {
       wsRef.current.close();
       wsRef.current = null;
@@ -100,34 +104,9 @@ export default function DashboardPage() {
     setNewMessage("");
   }
 
-  async function handleFileUpload(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    const formData = new FormData();
-    formData.append('file', file);
-    const token = localStorage.getItem("access_token");
-    
-    try {
-      const res = await fetch("http://127.0.0.1:8000/tasks/api/upload/", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData
-      });
-      const data = await res.json();
-      if (res.ok) {
-        alert(`✅ File "${data.filename}" uploaded! (${data.size} bytes)`);
-      } else {
-        alert("❌ Upload failed");
-      }
-    } catch (err) {
-      alert("❌ Network error");
-    }
-  }
-
   return (
     <main className="h-screen bg-gray-50 flex flex-col overflow-hidden relative">
       
-      {/* Notification Popup */}
       {notification && (
         <div className="absolute top-20 right-6 bg-gray-900 text-white px-4 py-3 rounded-lg shadow-xl text-sm font-medium animate-bounce z-50">
           🔔 {notification}
@@ -142,11 +121,21 @@ export default function DashboardPage() {
           <span className="text-xl font-bold text-gray-900">Team Chat</span>
         </div>
         <div className="flex items-center gap-4">
-          <span className="text-gray-600">Hi, <strong>{username}</strong></span>
-          <button
-            onClick={handleLogout}
-            className="px-4 py-2 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
-          >
+          <div className="text-right">
+            <span className="block text-gray-600 text-sm">
+              Hi, <strong>{username}</strong>
+            </span>
+            {role === 'admin' ? (
+              <span className="inline-block px-2 py-0.5 bg-purple-100 text-purple-700 text-xs font-bold rounded-md mt-1">
+                👑 HR / Admin
+              </span>
+            ) : (
+              <span className="inline-block px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-bold rounded-md mt-1">
+                👤 Employee
+              </span>
+            )}
+          </div>
+          <button onClick={handleLogout} className="px-4 py-2 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition">
             Logout
           </button>
         </div>
@@ -167,14 +156,41 @@ export default function DashboardPage() {
                   📝 Notes
                 </Link>
               </li>
+              
+              {role === 'admin' && (
+                <>
+                  <li>
+                    <Link href="/resume" className="block px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-lg cursor-pointer">
+                      🤖 Resume AI
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/rank" className="block px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-lg cursor-pointer">
+                      🏆 Leaderboard
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/my-jobs" className="block px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-lg cursor-pointer">
+                      📋 My Jobs
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/jobs" className="block px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-lg cursor-pointer">
+                      💼 Post a Job
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/add-employee" className="block px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-lg cursor-pointer">
+                      👥 Add Employee
+                    </Link>
+                  </li>
+                </>
+              )}
+              
+              {/* Settings is visible to everyone */}
               <li>
-                <Link href="/resume" className="block px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-lg cursor-pointer">
-                  🤖 Resume AI
-                </Link>
-              </li>
-              <li>
-                <Link href="/rank" className="block px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-lg cursor-pointer">
-                  🏆 Leaderboard
+                <Link href="/settings" className="block px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-lg cursor-pointer">
+                  ⚙️ Settings
                 </Link>
               </li>
             </ul>
@@ -212,15 +228,6 @@ export default function DashboardPage() {
               );
             })}
             <div ref={messagesEndRef} />
-          </div>
-
-          {/* File Upload Area */}
-          <div className="p-2 border-t border-gray-200 bg-gray-50 flex items-center gap-2">
-            <input 
-              type="file" 
-              onChange={handleFileUpload}
-              className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-            />
           </div>
 
           <div className="p-4 border-t border-gray-200 bg-white">
